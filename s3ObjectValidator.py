@@ -1,27 +1,18 @@
-import argparse ,re, urllib.parse, random
+import re, urllib.parse, random
 from pathlib import Path
 
-parser = argparse.ArgumentParser()
-
-parser.add_argument("Path", type=str ,help="Path to scan directories/files")
-parser.add_argument("-d", "--directory", default=False, action="store_true" ,help="Makes scan only include directories")
-parser.add_argument("-f", "--files", default=False, action="store_true" ,help="Makes scan only include files")
-parser.add_argument("-v", "--verbose", default=False, action="store_true" ,help="Increase verbosity of program" )
-
-args = parser.parse_args()
-
-def makeFullStructureSanitize(rootdir,history,filesBool=False,dirsBool=False):
+def makeFullStructureSanitize(rootdir,history,filesBool=False,dirsBool=False, verboseBool = False):
 
     for path in Path(rootdir).iterdir():
         if path.is_symlink():
-            if args.verbose:
+            if verboseBool:
                 print("unlinking symlink")
                 print(path)
             path.unlink()
         if path.is_file() and filesBool:
             # history['before']['files'].append(path)
             if needsSanitizing(path):
-                if args.verbose:
+                if verboseBool:
                     print("changing file")
                     print(path)
                 path = sanitize(path)
@@ -30,7 +21,7 @@ def makeFullStructureSanitize(rootdir,history,filesBool=False,dirsBool=False):
             if dirsBool:
                 # history['before']['dirs'].append(path)
                 if needsSanitizing(path):
-                    if args.verbose:
+                    if verboseBool:
                         print("changing dir")
                         print(path)
                     path = sanitize(path)
@@ -38,10 +29,10 @@ def makeFullStructureSanitize(rootdir,history,filesBool=False,dirsBool=False):
             makeFullStructureSanitize(path,history,filesBool,dirsBool)
 
 
-def sanitizeStructure(rootdir,filesBool=False,dirsBool=False):
+def sanitizeStructure(rootdir,filesBool=False,dirsBool=False, verboseBool = False):
     history = {"before": {"files" : [] , "dirs" : [] }, "after": {"files" : [] , "dirs" : [] }}
 
-    makeFullStructureSanitize(rootdir,history,filesBool,dirsBool)
+    makeFullStructureSanitize(rootdir,history,filesBool,dirsBool,verboseBool)
 
     if filesBool:
         return { "before" : history['before']['files'], "after" : history['after']['files']}
@@ -128,15 +119,3 @@ def sanitize(path):
         newPathObject = Path(newPath)
 
     return newPathObject
-
-if not Path(args.Path).exists():
-    print("File or directory path does not exist")
-    exit()
-
-if args.directory:
-    cleaned = sanitizeStructure(args.Path,False,True)
-elif args.files:
-    cleaned = sanitizeStructure(args.Path,True,False)
-else:
-    cleaned = sanitizeStructure(args.Path,True,True)
-print("Done sanitizing")
