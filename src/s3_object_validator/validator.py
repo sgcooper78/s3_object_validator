@@ -127,7 +127,7 @@ def sanitize(path):
 
     return newPathObject
 
-def main(args_list=None):
+def main():
     parser = argparse.ArgumentParser()
 
     parser.add_argument("Path", type=str ,help="Path to scan directories/files")
@@ -142,7 +142,7 @@ def main(args_list=None):
         print("File or directory path does not exist")
         exit()
 
-    cleaned = s3_object_validator.sanitizeStructure(args.Path,args.files,args.directory,args.scan,args.verbose)
+    cleaned = sanitizeStructure(args.Path,args.files,args.directory,args.scan,args.verbose)
     print("Done sanitizing")
 
 
